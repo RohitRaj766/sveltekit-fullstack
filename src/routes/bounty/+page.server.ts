@@ -1,45 +1,47 @@
-import { DefaultProvider, bsv } from "scrypt-ts";
 import { Root } from "../../contracts/root";
+import { DefaultProvider, bsv } from "scrypt-ts";
 import { NeucronSigner } from "neucron-signer";
 
-/** @type {import('./$types').Actions} */
 const provider = new DefaultProvider({ network: bsv.Networks.mainnet });
 const signer = new NeucronSigner(provider);
+await signer.login("sales@timechainlabs.io", "string");
+await Root.loadArtifact();
+let instance: any;
 
 export const actions = {
   deploy: async ({ request }) => {
     const data = await request.formData();
-    await signer.login("sales@timechainlabs.io", "string");
 
-    
-    await Root.loadArtifact();
+    const square = BigInt(Number(data.get("square")));
+    instance = new Root(square);
+    await instance.connect(signer);
 
-        const square = BigInt(data.get('square'));
-    const rootInstance = new Root(square);
-    await rootInstance.connect(signer);
-    
-    const deployRootTx = await rootInstance.deploy(data.get('amount'));
-    // const deployRootTx = {id:"Rohit"};
-    console.log("Smart contract Root deployed: https://whatsonchain.com/tx/" + deployRootTx);
+    const deployTx = await instance.deploy(Number(data.get("bounty")));
+    console.log(
+      "smart lock deployed : https://whatsonchain.com/tx/" + deployTx.id
+    );
 
-    return { success: true, tx: `https://whatsonchain.com/tx/" + ${deployRootTx}` };
+    return { deployed: true, txid: deployTx.id };
   },
 
   unlock: async ({ request }) => {
+    // Retrieve data from the form
     const data = await request.formData();
-  
-    await signer.login("sales@timechainlabs.io", "string");
-    await Root.loadArtifact();
+    const root = Number(data.get("root"));
 
-    const instance = new Root(data.get('square'));
-    if (!instance) {
-      await instance.connect(signer); 
+    await instance.connect(signer);
+    // Call the unlock method
+    try {
+      const { tx: callTx } = await instance.methods.unlock(root);
+      console.log(
+        "contract unlocked successfully : https://whatsonchain.com/tx/" +
+          callTx.id
+      );
+      return { success: true, txid: callTx.id };
+    } catch (error:any) {
+        console.log(error.message);
+        return { success: false, txid: error.message };
     }
 
-    // Unlock Root contract
-    const rootCallTx = await instance.methods.unlock(rootValue);
-    console.log("Root contract unlocked successfully: https://whatsonchain.com/tx/" + rootCallTx);
-
-    return { success: true, tx: rootCallTx };
-  }
+  },
 };
