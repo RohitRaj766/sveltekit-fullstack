@@ -66,7 +66,33 @@ export const actions = {
                 // const xPubKeys = await walletModule.getXPubKeys({ walletId: walletCreation1.walletID });
                 // console.log(xPubKeys);
                 return {success:true, balance: DefaultWalletBalance}
+            },
+            pay: async ({request}) =>{
+                const data = await request.formData();
+                const neucron = new NeucronSDK();
+                const authModule = neucron.authentication;
+                const walletModule = neucron.wallet;
+          
+                const loginResponse = await authModule.login({ email: data.get('email'), password: data.get('password')});
+                console.log(loginResponse);
+             const options = {
+                outputs: [
+                      {
+                            address: data.get('email'),
+                            // address: 'gamewizard750@dev.neucron.io',
+                            note: 'gurudakshina',
+                            amount: data.get('amount')
+                          }
+                        ]
+                      };
+                    
+                const payResponse = await neucron.pay.txSpend(options)
+                console.log(payResponse)
+                console.log("Transaction Succesful")
+                return {success:true, response: payResponse}
+            
             }
 
-            }
+        
+        }
 
