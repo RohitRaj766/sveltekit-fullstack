@@ -1,11 +1,12 @@
 import { Root } from "../../contracts/root";
-import { DefaultProvider, bsv } from "scrypt-ts";
+import { DefaultProvider, sha256, bsv, toByteString } from "scrypt-ts";
 import { NeucronSigner } from "neucron-signer";
+import artifact from "../../../artifacts/root.json"
 
 const provider = new DefaultProvider({ network: bsv.Networks.mainnet });
 const signer = new NeucronSigner(provider);
 await signer.login("sales@timechainlabs.io", "string");
-await Root.loadArtifact();
+await Root.loadArtifact(artifact);
 let instance: any;
 
 export const actions = {
@@ -16,12 +17,16 @@ export const actions = {
     instance = new Root(square);
     await instance.connect(signer);
 
-    const deployTx = await instance.deploy(Number(data.get("bounty")));
-    console.log(
-      "smart lock deployed : https://whatsonchain.com/tx/" + deployTx.id
-    );
+    try {
+      const deployTx = await instance.deploy(Number(data.get("bounty")));
+      console.log(
+        "smart lock deployed : https://whatsonchain.com/tx/" + deployTx.id
+      );
 
-    return { deployed: true, txid: deployTx.id };
+      return { deployed: true, txid: deployTx.id };
+    } catch (error:any) {
+      return { deployed: false, txid: error.message };
+    }
   },
 
   unlock: async ({ request }) => {
@@ -38,10 +43,9 @@ export const actions = {
           callTx.id
       );
       return { success: true, txid: callTx.id };
-    } catch (error:any) {
-        console.log(error.message);
-        return { success: false, txid: error.message };
+    } catch (error: any) {
+      console.log(error.message);
+      return { success: false, txid: error.message };
     }
-
   },
 };
