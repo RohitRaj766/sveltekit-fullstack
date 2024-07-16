@@ -1,98 +1,62 @@
 import NeucronSDK from "neucron-sdk";
 
-
-/** @type {import('./$types').Actions} */
 export const actions = {
+  login: async ({ request }) => {
+    const data = await request.formData();
 
-    login: async ({request}) =>{
+    const neucron = new NeucronSDK();
 
-        const data = await request.formData();
-        const neucron = new NeucronSDK();
-        
-        const authModule = neucron.authentication;
-        const walletModule = neucron.wallet;
-        
-        // const signUpResponse = await authModule.signUp({ email: "rohitraj2k04@gmail.com", password: "123456" });
-        // console.log(signUpResponse);
-        
-        const loginResponse = await authModule.login({ email: data.get('email'), password: data.get('password')});
-        // const loginResponse = await authModule.login({ email: "rohitraj2k04@gmail.com", password: "123456"});
-        console.log(loginResponse);
-        
-        // const walletKeys = await walletModule.getWalletKeys({});
-        // console.log(walletKeys);
-        
-        // For Default wallet balance
-        const DefaultWalletBalance = await walletModule.getWalletBalance({});
-        console.log(DefaultWalletBalance);
-        
-        // const addresses = await walletModule.getAddressesByWalletId({});
-        // console.log(addresses);
-        
-        // const options = {
-            //     outputs: [
-                //       {
-                    //         address: 'gamewizard750@dev.neucron.io',
-                    //         note: 'gurudakshina',
-                    //         amount: 10
-                    //       }
-                    //     ]
-                    //   };
-                    
-                // const payResponse = await neucron.pay.txSpend(options)
-                // console.log(payResponse)
-                // console.log("Transaction Succesful")
-                
-                // const walletHistory = await walletModule.getWalletHistory({ });
-                // console.log(walletHistory);
-                
-                
-                // console.log('initiating wallet')
-                // const walletCreation1 = await walletModule.createWallet({ walletName: 'Hello tsoc1' });
-                // console.log(walletCreation1);
-                
-                // const walletBalance = await walletModule.getWalletBalance({ walletId: walletCreation1.walletID });
-                // console.log(walletBalance);
-                
-                // const addresses = await walletModule.getAddressesByWalletId({ walletId: walletCreation1.walletID });
-                // console.log(addresses);
-                
-                // const mnemonic = await walletModule.getMnemonic({ walletId: walletCreation1.walletID });
-                // console.log(mnemonic);
-                
-                // const allUtxos = await walletModule.getAllUtxos({ walletId: walletCreation1.walletID });
-                // console.log(allUtxos);
-                
-                // const xPubKeys = await walletModule.getXPubKeys({ walletId: walletCreation1.walletID });
-                // console.log(xPubKeys);
-                return {success:true, balance: DefaultWalletBalance}
-            },
-            pay: async ({request}) =>{
-                const data = await request.formData();
-                const neucron = new NeucronSDK();
-                const authModule = neucron.authentication;
-                const walletModule = neucron.wallet;
-          
-                const loginResponse = await authModule.login({ email: data.get('email'), password: data.get('password')});
-                console.log(loginResponse);
-             const options = {
-                outputs: [
-                      {
-                            address: data.get('email'),
-                            // address: 'gamewizard750@dev.neucron.io',
-                            note: 'gurudakshina',
-                            amount: data.get('amount')
-                          }
-                        ]
-                      };
-                    
-                const payResponse = await neucron.pay.txSpend(options)
-                console.log(payResponse)
-                console.log("Transaction Succesful")
-                return {success:true, response: payResponse}
-            
-            }
+    const authModule = neucron.authentication;
+    const walletModule = neucron.wallet;
 
-        
-        }
+    const loginResponse = await authModule.login({
+      email: data.get("email"),
+      password: data.get("password"),
+    });
+    console.log(loginResponse);
 
+    const DefaultWalletBalance = await walletModule.getWalletBalance({});
+
+    return {
+      auth: true,
+      balance: DefaultWalletBalance.data.balance.summary,
+    };
+  },
+  pay: async ({ request }) => {
+    const data = await request.formData();
+
+    const neucron = new NeucronSDK();
+
+    const authModule = neucron.authentication;
+    const walletModule = neucron.wallet;
+
+    const loginResponse = await authModule.login({
+      email: data.get("email"),
+      password: data.get("password"),
+    });
+    // console.log(loginResponse);
+
+    const paymail = data.get('paymail');
+    const amount = Number(data.get('amount'));
+
+    const options = {
+      outputs: [
+        {
+          address: paymail,
+          note: "gurudakshina",
+          amount: amount,
+        },
+      ],
+    };
+    let payResponse;
+    try {
+      payResponse = await neucron.pay.txSpend(options);
+      console.log(payResponse);
+      return { success: true, payResponse: payResponse.data.txid };
+    } catch (error) {
+      console.log(error.message);
+      return {success : false, payResponse : error.message}
+    }
+
+  },
+};

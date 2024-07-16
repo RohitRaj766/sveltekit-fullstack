@@ -1,4 +1,4 @@
-<section class="bg-white dark:bg-gray-500 border-black">
+<section class="bg-white dark:bg-gray-900">
     <div class="py-8 px-4 mx-auto max-w-screen-xl text-center lg:py-16 lg:px-12">
         <a href="https://www.youtube.com/watch?v=Fd_JKZ8Ucdo" class="inline-flex justify-between items-center py-1 px-1 pr-4 mb-7 text-sm text-gray-700 bg-gray-100 rounded-full dark:bg-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700" role="alert">
             <span class="text-xs bg-primary-600 rounded-full text-white px-4 py-1.5 mr-3">Welcome to the</span> <span class="text-sm font-medium">TSoC Coding Phase</span> 
